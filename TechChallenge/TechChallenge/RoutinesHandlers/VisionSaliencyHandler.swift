@@ -6,8 +6,6 @@
 //
 
 import Vision
-import CoreVideo
-import CoreImage
 import UIKit
 
 struct VisionSaliencyHandler {
@@ -29,12 +27,12 @@ struct VisionSaliencyHandler {
 
     // allways 1 object
     guard let observation = request.results?.first as? VNSaliencyImageObservation else { return nil }
-    return observation.salientObjects?.compactMap({ $0.boundingBox})
+    return observation.salientObjects?.compactMap({ $0.boundingBox })
   }
-
+// don't work
   func createBoundingPathForSalientObjects(_ salientObjectsBoxes: [CGRect],
                                            transform: CGAffineTransform,
-                                           imageView: ContentModeAnimatableView) -> CGPath {
+                                           size: CGSize) -> CGPath {
     let path = CGMutablePath()
     for object in salientObjectsBoxes {
       let boundingBox = object
@@ -47,7 +45,7 @@ struct VisionSaliencyHandler {
 //      let newBox = CGRect(x: xCord, y: yCord, width: width, height: height)
 //      var bottomToTopTransform = CGAffineTransform(scaleX: 1, y: -1).translatedBy(x: 0, y: -1)
 //      let rect = boundingBox.applying(bottomToTopTransform)
-      let newBox = VNImageRectForNormalizedRect(boundingBox, Int(imageView.image!.size.width), Int(imageView.image!.size.height))
+      let newBox = VNImageRectForNormalizedRect(boundingBox, Int(size.width), Int(size.height))
       print("newBox: \(newBox)")
       path.addRect(boundingBox, transform: transform)
     }

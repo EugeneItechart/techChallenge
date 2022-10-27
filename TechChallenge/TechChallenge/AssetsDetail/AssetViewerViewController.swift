@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Photos
 
 class AssetViewerViewController: UIViewController {
 
@@ -15,6 +16,7 @@ class AssetViewerViewController: UIViewController {
 
   private let saliencyHandler = VisionSaliencyHandler()
   private let salientObjectsLayer = CAShapeLayer()
+  private let handler = PhotoLibraryAssetsRoutinesHandler()
 
   private let imageView: ContentModeAnimatableView = {
     let view = ContentModeAnimatableView()
@@ -32,11 +34,15 @@ class AssetViewerViewController: UIViewController {
     configureContainerView()
     setupSalientObjectsLayer()
     configureNavigationItem()
+
+    view.backgroundColor = .clear
   }
 
   override func viewDidAppear(_ animated: Bool) {
     super.viewDidAppear(animated)
     view.setNeedsLayout()
+
+    //cancel request when go back
   }
 
   override func viewDidLayoutSubviews() {
@@ -44,8 +50,18 @@ class AssetViewerViewController: UIViewController {
     super.viewDidLayoutSubviews()
   }
 
-  func setupChosenImage(_ image: UIImage) {
-    DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+  // setup with thumbnail image
+  func setupWithImageInfo(_ image: UIImage?, asset: PHAsset) {
+    let size = self.view.bounds.size
+    DispatchQueue.global(qos: .userInteractive).async {
+      self.handler.requestImage(for: asset, targetSize: size) { [weak self] image in
+        self?.updateImage(image: image)
+      }
+    }
+  }
+
+  private func updateImage(image: UIImage?) {
+    DispatchQueue.main.async {
       self.imageView.image = image
       self.findAreasOfInterest()
     }
@@ -77,15 +93,16 @@ class AssetViewerViewController: UIViewController {
   }
 
   private func findAreasOfInterest() {
-    let saliencyObjects = self.saliencyHandler.findAreasOfInterest(URL(string: "")!) ?? []
-    DispatchQueue.main.async { [weak self] in
-      self?.updatePathForSaliencyLayer(with: saliencyObjects)
-    }
+//    let saliencyObjects = self.saliencyHandler.findAreasOfInterest(url) ?? []
+//    DispatchQueue.main.async { [weak self] in
+//      self?.updatePathForSaliencyLayer(with: saliencyObjects)
+//    }
   }
 
   private func updatePathForSaliencyLayer(with rects: [CGRect]) {
+    let size = self.imageView.bounds.size
     DispatchQueue.global(qos: .userInteractive).async {
-      let path = self.saliencyHandler.createBoundingPathForSalientObjects(rects, transform: self.salientObjectsPathTransform, imageView: self.imageView)
+      let path = self.saliencyHandler.createBoundingPathForSalientObjects(rects, transform: self.salientObjectsPathTransform, size: size)
       DispatchQueue.main.async {
         self.salientObjectsLayer.path = path
       }

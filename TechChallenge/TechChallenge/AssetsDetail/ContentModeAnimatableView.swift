@@ -11,7 +11,10 @@ class ContentModeAnimatableView: UIView {
 
   var image: UIImage? {
     get { return imageView.image }
-    set { imageView.image = newValue }
+    set {
+      imageView.image = newValue
+      setNeedsLayout()
+    }
   }
 
   private let imageView = UIImageView()
