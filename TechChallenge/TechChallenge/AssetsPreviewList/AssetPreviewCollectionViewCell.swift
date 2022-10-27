@@ -32,9 +32,15 @@ class AssetPreviewCollectionViewCell: UICollectionViewCell {
     fatalError("init(coder:) has not been implemented")
   }
 
+  override func prepareForReuse() {
+    super.prepareForReuse()
+
+    thumbnailImageView.image = nil
+  }
+
   private func configureUI() {
     contentView.contentMode = .scaleAspectFill
-    addSubview(thumbnailImageView)
+    contentView.addSubview(thumbnailImageView)
 
     NSLayoutConstraint.activate([
       thumbnailImageView.topAnchor.constraint(equalTo: contentView.topAnchor),

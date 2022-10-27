@@ -25,7 +25,6 @@ class AssetViewerViewController: UIViewController {
     return view
   }()
 
-  private var salientObjectsPathTransform = CGAffineTransform.identity
   private var nextContentMode = UIView.ContentMode.scaleAspectFit
 
   override func viewDidLoad() {
@@ -38,23 +37,24 @@ class AssetViewerViewController: UIViewController {
     view.backgroundColor = .clear
   }
 
-  override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-    view.setNeedsLayout()
-
-    //cancel request when go back
-  }
-
   override func viewDidLayoutSubviews() {
-    updateLayersGeometry()
+    salientObjectsLayer.frame = view.bounds
+
     super.viewDidLayoutSubviews()
   }
 
-  // setup with thumbnail image
+  override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+
+    imageView.image = nil
+    handler.stopRequestingImages()
+  }
+
+  // setup with thumbnail image and try to load full-size one
   func setupWithImageInfo(_ image: UIImage?, asset: PHAsset) {
-    let size = self.view.bounds.size
+    updateImage(image: image)
     DispatchQueue.global(qos: .userInteractive).async {
-      self.handler.requestImage(for: asset, targetSize: size) { [weak self] image in
+      self.handler.requestImage(for: asset, contentMode: .aspectFit) { [weak self] image in
         self?.updateImage(image: image)
       }
     }
@@ -70,10 +70,10 @@ class AssetViewerViewController: UIViewController {
   private func configureContainerView() {
     view.addSubview(imageView)
     NSLayoutConstraint.activate([
-      imageView.topAnchor.constraint(equalTo: view.topAnchor),
-      imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      imageView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      imageView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+      imageView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+      imageView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
     ])
   }
 
@@ -93,27 +93,24 @@ class AssetViewerViewController: UIViewController {
   }
 
   private func findAreasOfInterest() {
-//    let saliencyObjects = self.saliencyHandler.findAreasOfInterest(url) ?? []
-//    DispatchQueue.main.async { [weak self] in
-//      self?.updatePathForSaliencyLayer(with: saliencyObjects)
-//    }
-  }
+    guard let cgImage = imageView.image?.cgImage else { return }
 
-  private func updatePathForSaliencyLayer(with rects: [CGRect]) {
-    let size = self.imageView.bounds.size
     DispatchQueue.global(qos: .userInteractive).async {
-      let path = self.saliencyHandler.createBoundingPathForSalientObjects(rects, transform: self.salientObjectsPathTransform, size: size)
+      let saliencyObjects = self.saliencyHandler.findAreasOfInterest(cgImage) ?? []
       DispatchQueue.main.async {
-        self.salientObjectsLayer.path = path
+        self.updatePathForSaliencyLayer(with: saliencyObjects)
       }
     }
   }
 
-  private func updateLayersGeometry() {
-    salientObjectsLayer.frame = view.bounds
-    let scaleT = CGAffineTransform(scaleX: salientObjectsLayer.bounds.width, y: -salientObjectsLayer.bounds.height)
-    let translateT = CGAffineTransform(translationX: 0, y: salientObjectsLayer.bounds.height)
-    salientObjectsPathTransform = scaleT.concatenating(translateT)
+  private func updatePathForSaliencyLayer(with rects: [CGRect]) {
+    let size = imageView.bounds.size
+    DispatchQueue.global(qos: .userInteractive).async {
+      let path = self.saliencyHandler.createBoundingPathForSalientObjects(rects, size: size)
+      DispatchQueue.main.async {
+        self.salientObjectsLayer.path = path
+      }
+    }
   }
 
   @objc private func rightBarButtonItemTapped() {

@@ -27,13 +27,12 @@ class PhotoLibraryAssetsRoutinesHandler {
 
   func fetchPhotoAssets() -> [PHAsset] {
     let fetchOptions = PHFetchOptions()
-    fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue) // fetch only photos
-    fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)] // fetch last 1000 photos
-    //requestOptions.deliveryMode = .highQualityFormat
+    fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
+    fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
     fetchOptions.fetchLimit = Constants.fetchLimit
 
     let fetchResult: PHFetchResult<PHAsset> = PHAsset.fetchAssets(with: fetchOptions)
-    let indexes = IndexSet(0..<Constants.fetchLimit)
+    let indexes = IndexSet(0..<fetchResult.count)
     let assets = fetchResult.objects(at: indexes)
 
     return assets
@@ -42,7 +41,10 @@ class PhotoLibraryAssetsRoutinesHandler {
   func cacheAssets(assets: [PHAsset], targetSize: CGSize) {
     guard !assets.isEmpty else { return }
 
-    imageRequestOptions.deliveryMode = .highQualityFormat // .opportunistic
+    imageRequestOptions.deliveryMode = .fastFormat
+    //imageRequestOptions.deliveryMode = .highQualityFormat // .opportunistic
+    // observe progressHandler to update UI accordingly (eg. show loading indicator)
+    imageRequestOptions.progressHandler
 
     cachingImageManager.startCachingImages(for: assets,
                                            targetSize: targetSize,
@@ -57,22 +59,21 @@ class PhotoLibraryAssetsRoutinesHandler {
                                           options: imageRequestOptions)
   }
 
-  func requestImage(for asset: PHAsset, targetSize: CGSize, completion: @escaping (UIImage?) -> ()) {
-    //    cachingImageManager.allowsCachingHighQualityImages = true
-    //   imageRequestOptions.progressHandler // check show loading indicator
-   // contentMode for detailed presentation: .aspectFit
-   // targetSize: max
+  func requestImage(for asset: PHAsset,
+                    targetSize: CGSize = PHImageManagerMaximumSize,
+                    contentMode: PHImageContentMode = .aspectFill,
+                    completion: @escaping (UIImage?) -> ()) {
     let requestId = cachingImageManager.requestImage(for: asset,
                                                      targetSize: targetSize,
-                                                     contentMode: .aspectFill,
+                                                     contentMode: contentMode,
                                                      options: imageRequestOptions) { [weak self] image, info in
-      if let requestId = info?["PHImageResultRequestIDKey"] as? PHImageRequestID,
+      if let requestId = info?[PHImageResultRequestIDKey] as? PHImageRequestID,
          let index = self?.pendingRequests.firstIndex(of: requestId) {
         self?.pendingRequests.remove(at: index)
       }
       completion(image)
     }
-//    pendingRequests.append(requestId)
+    pendingRequests.append(requestId)
   }
 
   func stopRequestingImages() {
@@ -80,6 +81,3 @@ class PhotoLibraryAssetsRoutinesHandler {
   }
 
 }
-
-// cachingImageManager.allowsCachingHighQualityImages
-//   imageRequestOptions.progressHandler // check

@@ -33,7 +33,6 @@ class AssetsListViewController: UIViewController, UINavigationControllerDelegate
     let numberOfItemsInRow = Constants.numberOfItemsInRow
     let totalSpace = $0.minimumInteritemSpacing * CGFloat(numberOfItemsInRow - 1)
     let size = (view.bounds.width - totalSpace) / CGFloat(numberOfItemsInRow)
-    print("size: \(size)")
     $0.itemSize = CGSize(width: size, height: size)
     return $0
   }(UICollectionViewFlowLayout())
@@ -42,6 +41,7 @@ class AssetsListViewController: UIViewController, UINavigationControllerDelegate
     super.viewDidLoad()
 
     title = "Recents"
+    view.backgroundColor = .white
 
     configureContainerView()
     requestAssetsFromPhotoLibrary()
@@ -54,10 +54,10 @@ class AssetsListViewController: UIViewController, UINavigationControllerDelegate
   private func configureContainerView() {
     view.addSubview(assetsCollectionView)
     NSLayoutConstraint.activate([
-      assetsCollectionView.topAnchor.constraint(equalTo: view.topAnchor),
-      assetsCollectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-      assetsCollectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-      assetsCollectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+      assetsCollectionView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+      assetsCollectionView.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
+      assetsCollectionView.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
+      assetsCollectionView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
     ])
   }
 
@@ -101,7 +101,6 @@ extension AssetsListViewController: UICollectionViewDataSource, UICollectionView
 
     let asset = datasource[indexPath.row]
     print("request image for indexPath: \(indexPath)")
-
     DispatchQueue.global(qos: .userInteractive).async {
       self.handler.requestImage(for: asset, targetSize: self.collectionViewLayout.itemSize) { image in
         DispatchQueue.main.async {
