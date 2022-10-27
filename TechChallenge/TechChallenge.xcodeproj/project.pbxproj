@@ -19,6 +19,8 @@
 		8803DE45290A7F9B009B4431 /* AssetPreviewCollectionViewCellModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8803DE44290A7F9B009B4431 /* AssetPreviewCollectionViewCellModel.swift */; };
 		8803DE48290A8672009B4431 /* UIViewController+Alert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8803DE47290A8672009B4431 /* UIViewController+Alert.swift */; };
 		8803DE4A290A885F009B4431 /* PhotoLibraryAssetsRoutinesHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8803DE49290A885F009B4431 /* PhotoLibraryAssetsRoutinesHandler.swift */; };
+		88FD6BEE290AAC3D007230A8 /* VisionSaliencyHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FD6BED290AAC3D007230A8 /* VisionSaliencyHandler.swift */; };
+		88FD6BF0290AB1AA007230A8 /* ContentModeAnimatableView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88FD6BEF290AB1AA007230A8 /* ContentModeAnimatableView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +49,8 @@
 		8803DE44290A7F9B009B4431 /* AssetPreviewCollectionViewCellModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AssetPreviewCollectionViewCellModel.swift; sourceTree = "<group>"; };
 		8803DE47290A8672009B4431 /* UIViewController+Alert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIViewController+Alert.swift"; sourceTree = "<group>"; };
 		8803DE49290A885F009B4431 /* PhotoLibraryAssetsRoutinesHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhotoLibraryAssetsRoutinesHandler.swift; sourceTree = "<group>"; };
+		88FD6BED290AAC3D007230A8 /* VisionSaliencyHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VisionSaliencyHandler.swift; sourceTree = "<group>"; };
+		88FD6BEF290AB1AA007230A8 /* ContentModeAnimatableView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentModeAnimatableView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -130,6 +134,8 @@
 		8803DE43290A7F6F009B4431 /* AssetsDetail */ = {
 			isa = PBXGroup;
 			children = (
+				88FD6BEF290AB1AA007230A8 /* ContentModeAnimatableView.swift */,
+				88FD6BED290AAC3D007230A8 /* VisionSaliencyHandler.swift */,
 				8803DE3D290A73CC009B4431 /* AssetViewerViewController.swift */,
 			);
 			path = AssetsDetail;
@@ -245,11 +251,13 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				88FD6BEE290AAC3D007230A8 /* VisionSaliencyHandler.swift in Sources */,
 				8803DE45290A7F9B009B4431 /* AssetPreviewCollectionViewCellModel.swift in Sources */,
 				8803DE12290A713D009B4431 /* AssetsListViewController.swift in Sources */,
 				8803DE4A290A885F009B4431 /* PhotoLibraryAssetsRoutinesHandler.swift in Sources */,
 				8803DE41290A7EEE009B4431 /* AssetPreviewCollectionViewCell.swift in Sources */,
 				8803DE0E290A713D009B4431 /* AppDelegate.swift in Sources */,
+				88FD6BF0290AB1AA007230A8 /* ContentModeAnimatableView.swift in Sources */,
 				8803DE10290A713D009B4431 /* SceneDelegate.swift in Sources */,
 				8803DE3E290A73CC009B4431 /* AssetViewerViewController.swift in Sources */,
 				8803DE48290A8672009B4431 /* UIViewController+Alert.swift in Sources */,
