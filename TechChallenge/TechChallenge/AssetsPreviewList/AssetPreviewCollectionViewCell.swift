@@ -9,7 +9,15 @@ import UIKit
 
 class AssetPreviewCollectionViewCell: UICollectionViewCell {
 
-  let thumbnailImageView: UIImageView = {
+  var identifier: String?
+
+  var image: UIImage? {
+    didSet {
+      thumbnailImageView.image = image
+    }
+  }
+
+  private let thumbnailImageView: UIImageView = {
     let imageView = UIImageView()
     imageView.translatesAutoresizingMaskIntoConstraints = false
     imageView.backgroundColor = .white
@@ -17,10 +25,6 @@ class AssetPreviewCollectionViewCell: UICollectionViewCell {
     imageView.clipsToBounds = true
     return imageView
   }()
-
-  func update(with image: UIImage?) {
-    thumbnailImageView.image = image
-  }
 
   override init(frame: CGRect) {
     super.init(frame: frame)
@@ -36,6 +40,7 @@ class AssetPreviewCollectionViewCell: UICollectionViewCell {
     super.prepareForReuse()
 
     thumbnailImageView.image = nil
+    identifier = nil
   }
 
   private func configureUI() {

@@ -100,11 +100,13 @@ extension AssetsListViewController: UICollectionViewDataSource, UICollectionView
             AssetPreviewCollectionViewCell else { return UICollectionViewCell() }
 
     let asset = datasource[indexPath.row]
-    print("request image for indexPath: \(indexPath)")
+    cell.identifier = asset.localIdentifier
     DispatchQueue.global(qos: .userInteractive).async {
       self.handler.requestImage(for: asset, targetSize: self.collectionViewLayout.itemSize) { image in
-        DispatchQueue.main.async {
-          cell.update(with: image)
+        if asset.localIdentifier == cell.identifier {
+          DispatchQueue.main.async {
+            cell.image = image
+          }
         }
       }
     }
