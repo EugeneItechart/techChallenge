@@ -34,6 +34,12 @@ class AssetViewerViewController: UIViewController {
     setupSalientObjectsLayer()
     configureNavigationItem()
 
+    view.backgroundColor = .white
+  }
+
+  override func viewDidAppear(_ animated: Bool) {
+    super.viewDidAppear(animated)
+
     view.backgroundColor = .clear
   }
 
@@ -46,6 +52,7 @@ class AssetViewerViewController: UIViewController {
   override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
 
+    view.backgroundColor = .white
     imageView.image = nil
     handler.stopRequestingImages()
   }
