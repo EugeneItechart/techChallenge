@@ -1,5 +1,5 @@
 //
-//  PhotoLibraryAssetsRoutinesHandler.swift
+//  PhotoLibraryFetchAssetsHandler.swift
 //  TechChallenge
 //
 //  Created by Eugene Bessilko on 10/27/22.
@@ -9,14 +9,13 @@ import Foundation
 import Photos
 import UIKit
 
-class PhotoLibraryAssetsRoutinesHandler {
+class PhotoLibraryFetchAssetsHandler {
 
   private enum Constants {
     static let fetchLimit = 1000
   }
 
   private let cachingImageManager = PHCachingImageManager()
-  private let imageRequestOptions = PHImageRequestOptions()
   private var pendingRequests = [PHImageRequestID]()
 
   func requestAccessToPhotoLibrary(completion: @escaping (Bool) -> ()) {
@@ -28,7 +27,7 @@ class PhotoLibraryAssetsRoutinesHandler {
   func fetchPhotoAssets() -> [PHAsset] {
     let fetchOptions = PHFetchOptions()
     fetchOptions.predicate = NSPredicate(format: "mediaType = %d", PHAssetMediaType.image.rawValue)
-    fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: true)]
+    fetchOptions.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
     fetchOptions.fetchLimit = Constants.fetchLimit
 
     let fetchResult: PHFetchResult<PHAsset> = PHAsset.fetchAssets(with: fetchOptions)
@@ -38,35 +37,34 @@ class PhotoLibraryAssetsRoutinesHandler {
     return assets
   }
 
-  func cacheAssets(assets: [PHAsset], targetSize: CGSize) {
+  func cacheAssets(_ assets: [PHAsset], targetSize: CGSize) {
     guard !assets.isEmpty else { return }
 
-    imageRequestOptions.deliveryMode = .fastFormat
-    //imageRequestOptions.deliveryMode = .highQualityFormat // .opportunistic
-    // observe progressHandler to update UI accordingly (eg. show loading indicator)
-    imageRequestOptions.progressHandler
+    let options = PHImageRequestOptions()
+    options.deliveryMode = .fastFormat
 
     cachingImageManager.startCachingImages(for: assets,
                                            targetSize: targetSize,
                                            contentMode: .aspectFill,
-                                           options: imageRequestOptions)
+                                           options: options)
   }
 
-  func stopCachingAssets(assets: [PHAsset]) {
-    cachingImageManager.stopCachingImages(for: assets,
-                                          targetSize: CGSize(width: 86, height: 86),
-                                          contentMode: .aspectFill,
-                                          options: imageRequestOptions)
+  func stopCachingAssets() {
+    cachingImageManager.stopCachingImagesForAllAssets()
   }
 
   func requestImage(for asset: PHAsset,
                     targetSize: CGSize = PHImageManagerMaximumSize,
                     contentMode: PHImageContentMode = .aspectFill,
+                    deliveryMode: PHImageRequestOptionsDeliveryMode = .fastFormat,
                     completion: @escaping (UIImage?) -> ()) {
+
+    let options = PHImageRequestOptions()
+    options.deliveryMode = deliveryMode
     let requestId = cachingImageManager.requestImage(for: asset,
                                                      targetSize: targetSize,
                                                      contentMode: contentMode,
-                                                     options: imageRequestOptions) { [weak self] image, info in
+                                                     options: options) { [weak self] image, info in
       if let requestId = info?[PHImageResultRequestIDKey] as? PHImageRequestID,
          let index = self?.pendingRequests.firstIndex(of: requestId) {
         self?.pendingRequests.remove(at: index)

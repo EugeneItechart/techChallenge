@@ -10,7 +10,7 @@ import Photos
 
 class AssetsListViewController: UIViewController, UINavigationControllerDelegate {
 
-  private let handler = PhotoLibraryAssetsRoutinesHandler()
+  private let handler = PhotoLibraryFetchAssetsHandler()
   private var datasource: [PHAsset] = []
 
   private lazy var assetsCollectionView: UICollectionView = {
@@ -40,7 +40,7 @@ class AssetsListViewController: UIViewController, UINavigationControllerDelegate
   override func viewDidLoad() {
     super.viewDidLoad()
 
-    title = "Recents"
+    title = Constants.navigationTitle
     view.backgroundColor = .white
 
     configureContainerView()
@@ -75,6 +75,7 @@ class AssetsListViewController: UIViewController, UINavigationControllerDelegate
   }
 
   @objc private func appEnterBackground() {
+    handler.stopCachingAssets()
     handler.stopRequestingImages()
   }
 
@@ -85,6 +86,7 @@ extension AssetsListViewController: UICollectionViewDataSource, UICollectionView
     static let numberOfItemsInRow = 4
     static let cellReuseIdentifier = "AssetPreviewCollectionViewCell"
     static let cellItemSpacing: CGFloat = 5
+    static let navigationTitle = "Recents"
   }
 
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -126,7 +128,7 @@ extension AssetsListViewController: UICollectionViewDataSource, UICollectionView
       }
     }
     DispatchQueue.global(qos: .userInteractive).async {
-      self.handler.cacheAssets(assets: assets, targetSize: self.collectionViewLayout.itemSize)
+      self.handler.cacheAssets(assets, targetSize: self.collectionViewLayout.itemSize)
     }
   }
 }

@@ -12,20 +12,21 @@ class AssetViewerViewController: UIViewController {
 
   private enum Constants {
     static let magnifyingGlassIconName = "arrow.up.left.and.down.right.magnifyingglass"
+    static let animationDuration = 0.8
   }
 
   private let saliencyHandler = VisionSaliencyHandler()
   private let salientObjectsLayer = CAShapeLayer()
-  private let handler = PhotoLibraryAssetsRoutinesHandler()
+  private let handler = PhotoLibraryFetchAssetsHandler()
 
-  private let imageView: ContentModeAnimatableView = {
-    let view = ContentModeAnimatableView()
-    view.translatesAutoresizingMaskIntoConstraints = false
-    view.contentMode = .scaleAspectFill
-    return view
+  private let imageView: UIImageView = {
+    let imageView = UIImageView()
+    imageView.translatesAutoresizingMaskIntoConstraints = false
+    imageView.contentMode = .scaleAspectFill
+    return imageView
   }()
 
-  private var nextContentMode = UIView.ContentMode.scaleAspectFit
+  private var currentContentMode = UIView.ContentMode.scaleAspectFill
 
   override func viewDidLoad() {
     super.viewDidLoad()
@@ -44,9 +45,9 @@ class AssetViewerViewController: UIViewController {
   }
 
   override func viewDidLayoutSubviews() {
-    salientObjectsLayer.frame = view.bounds
-
     super.viewDidLayoutSubviews()
+
+    salientObjectsLayer.frame = imageView.bounds
   }
 
   override func viewWillDisappear(_ animated: Bool) {
@@ -55,13 +56,14 @@ class AssetViewerViewController: UIViewController {
     view.backgroundColor = .white
     imageView.image = nil
     handler.stopRequestingImages()
+    salientObjectsLayer.removeFromSuperlayer()
   }
 
-  // setup with thumbnail image and try to load full-size one
+  // setup with thumbnail image and try to load a full-size one
   func setupWithImageInfo(_ image: UIImage?, asset: PHAsset) {
     updateImage(image: image)
     DispatchQueue.global(qos: .userInteractive).async {
-      self.handler.requestImage(for: asset, contentMode: .aspectFit) { [weak self] image in
+      self.handler.requestImage(for: asset, contentMode: .aspectFill, deliveryMode: .highQualityFormat) { [weak self] image in
         self?.updateImage(image: image)
       }
     }
@@ -121,12 +123,18 @@ class AssetViewerViewController: UIViewController {
   }
 
   @objc private func rightBarButtonItemTapped() {
-    // contentMode isn't animatable property
-    let contentMode: UIView.ContentMode = imageView.contentMode == .scaleAspectFit ? .scaleAspectFill : .scaleAspectFit
-    UIView.animate(withDuration: 0.3, animations: {
-      self.imageView.contentMode = contentMode
-    }, completion: { _ in
-      self.findAreasOfInterest()
-    })
+    guard imageView.image != nil else { return }
+
+    let ratio = imageScale(of: imageView)
+    var scaleTransform: CGAffineTransform = .identity
+    let newContentMode: UIView.ContentMode = currentContentMode == .scaleAspectFit ? .scaleAspectFill : .scaleAspectFit
+    if newContentMode == .scaleAspectFit {
+      scaleTransform = CGAffineTransform(scaleX: ratio, y: ratio)
+    }
+    UIView.animate(withDuration: Constants.animationDuration) {
+      self.imageView.transform = scaleTransform
+    } completion: { completed in
+      self.currentContentMode = newContentMode
+    }
   }
 }

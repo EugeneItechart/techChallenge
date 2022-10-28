@@ -18,7 +18,6 @@ struct VisionSaliencyHandler {
       }
     }
     request.revision = VNGenerateAttentionBasedSaliencyImageRequestRevision1
-    request.usesCPUOnly = true
     do {
       try handler.perform([request])
     } catch {
