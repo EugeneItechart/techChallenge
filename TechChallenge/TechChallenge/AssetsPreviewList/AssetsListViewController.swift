@@ -26,8 +26,8 @@ class AssetsListViewController: UIViewController, UINavigationControllerDelegate
 
   private lazy var collectionViewLayout: UICollectionViewFlowLayout = {
     $0.scrollDirection = .vertical
-    $0.minimumInteritemSpacing = 5
-    $0.minimumLineSpacing = 5
+    $0.minimumInteritemSpacing = Constants.cellItemSpacing
+    $0.minimumLineSpacing = Constants.cellItemSpacing
     $0.sectionInset = .zero
 
     let numberOfItemsInRow = Constants.numberOfItemsInRow
@@ -48,7 +48,6 @@ class AssetsListViewController: UIViewController, UINavigationControllerDelegate
 
     let center = NotificationCenter.default
     center.addObserver(self, selector: #selector(appEnterBackground), name: UIApplication.didEnterBackgroundNotification, object: nil)
-    center.addObserver(self, selector: #selector(appEnterForeground), name: UIApplication.willEnterForegroundNotification, object: nil)
   }
 
   private func configureContainerView() {
@@ -76,11 +75,7 @@ class AssetsListViewController: UIViewController, UINavigationControllerDelegate
   }
 
   @objc private func appEnterBackground() {
-    //handler.stopCachingAssets()
     handler.stopRequestingImages()
-  }
-
-  @objc private func appEnterForeground() {
   }
 
 }
@@ -89,6 +84,7 @@ extension AssetsListViewController: UICollectionViewDataSource, UICollectionView
   private enum Constants {
     static let numberOfItemsInRow = 4
     static let cellReuseIdentifier = "AssetPreviewCollectionViewCell"
+    static let cellItemSpacing: CGFloat = 5
   }
 
   func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
@@ -97,9 +93,8 @@ extension AssetsListViewController: UICollectionViewDataSource, UICollectionView
 
   func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
     guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Constants.cellReuseIdentifier, for: indexPath) as?
-            AssetPreviewCollectionViewCell else { return UICollectionViewCell() }
+            AssetPreviewCollectionViewCell, let asset = datasource[safe: indexPath.row] else { return UICollectionViewCell() }
 
-    let asset = datasource[indexPath.row]
     cell.identifier = asset.localIdentifier
     DispatchQueue.global(qos: .userInteractive).async {
       self.handler.requestImage(for: asset, targetSize: self.collectionViewLayout.itemSize) { image in
@@ -116,27 +111,22 @@ extension AssetsListViewController: UICollectionViewDataSource, UICollectionView
 
   func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
     let viewController = AssetViewerViewController()
-    let thumbnailImage = (collectionView.cellForItem(at: indexPath) as? AssetPreviewCollectionViewCell)?.thumbnailImageView.image
+    let thumbnailImage = (collectionView.cellForItem(at: indexPath) as? AssetPreviewCollectionViewCell)?.image
     let asset = datasource[indexPath.row]
     viewController.setupWithImageInfo(thumbnailImage, asset: asset)
     navigationController?.pushViewController(viewController, animated: true)
   }
 
   func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
-    print("prefetchItemsAt indexPaths: \(indexPaths)")
-
     let rows = indexPaths.map { $0.row }
     var assets = [PHAsset]()
     for row in rows {
-      let asset = datasource[row]
-      assets.append(asset)
+      if let asset = datasource[safe: row] {
+        assets.append(asset)
+      }
     }
     DispatchQueue.global(qos: .userInteractive).async {
       self.handler.cacheAssets(assets: assets, targetSize: self.collectionViewLayout.itemSize)
     }
-  }
-
-  func collectionView(_ collectionView: UICollectionView, cancelPrefetchingForItemsAt indexPaths: [IndexPath]) {
-    print("cancel prefetching indexPaths: \(indexPaths)")
   }
 }
